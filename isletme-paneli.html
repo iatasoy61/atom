@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATOM KUMPİR — İşletme Paneli</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#0B0D11;color:#E2E8F0;font-family:'DM Sans',sans-serif;font-size:14px}
+body{display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.hdr{height:52px;background:#111419;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;gap:12px}
+.hdr-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-logo{width:30px;height:30px;border-radius:8px;background:#E8390E;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff}
+.hdr-name{font-family:'IBM Plex Mono';font-size:12px;font-weight:600;letter-spacing:.3px;line-height:1.3}
+.hdr-name span{color:#3B82F6}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nt{padding:7px 14px;border-radius:8px;border:none;background:transparent;font-family:'DM Sans';font-size:12px;font-weight:500;color:#64748B;cursor:pointer;transition:.15s;white-space:nowrap}
+.nt:hover{background:rgba(255,255,255,.05);color:#CBD5E1}
+.nt.active{background:rgba(59,130,246,.12);color:#3B82F6;font-weight:700}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:#4ADE80}
+.ldot{width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clock{font-family:'IBM Plex Mono';font-size:12px;color:#475569}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:190px;flex-shrink:0;background:#111419;border-right:1px solid rgba(255,255,255,.05);padding:14px 10px;overflow-y:auto}
+.main{flex:1;overflow-y:auto}
+
+.sb-sec{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#475569;padding:10px 8px 6px;margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13px;font-weight:500;color:#64748B;transition:.15s}
+.sb-item:hover{background:rgba(255,255,255,.04);color:#CBD5E1}
+.sb-item.active{background:rgba(59,130,246,.1);color:#3B82F6;font-weight:600}
+.sb-item .ico{width:16px;text-align:center;font-size:13px}
+.nb{margin-left:auto;min-width:18px;height:18px;border-radius:4px;background:#E53E3E;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.nb.amber{background:#D97706}
+
+/* ── PANELS ── */
+.panel{display:none;padding:20px;flex-direction:column;gap:16px}
+.panel.active{display:flex}
+
+/* page title */
+.pg-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.pg-title h2{font-size:17px;font-weight:800}
+.pg-title p{font-size:12px;color:#475569;margin-top:2px}
+.btn-row{display:flex;gap:6px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#94A3B8;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:'DM Sans'}
+.btn:hover{background:rgba(255,255,255,.06);color:#CBD5E1}
+.btn.primary{background:#3B82F6;border-color:#3B82F6;color:#fff}
+.btn.primary:hover{background:#2563EB}
+.btn.success{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.2);color:#4ADE80}
+.btn.success:hover{background:rgba(22,163,74,.2)}
+.btn.danger{background:rgba(229,62,62,.08);border-color:rgba(229,62,62,.15);color:#FCA5A5}
+.btn.danger:hover{background:rgba(229,62,62,.15)}
+
+/* stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:960px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc-blue::after{background:#3B82F6}.sc-green::after{background:#16A34A}.sc-amber::after{background:#D97706}.sc-red::after{background:#E53E3E}
+.s-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;margin-bottom:8px}
+.s-val{font-family:'IBM Plex Mono';font-size:26px;font-weight:600;line-height:1;margin-bottom:4px}
+.sv-blue{color:#60A5FA}.sv-green{color:#4ADE80}.sv-amber{color:#FCD34D}.sv-red{color:#FCA5A5}
+.s-delta{font-size:11px;color:#475569}
+
+/* ── MENU MANAGER ── */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.fc{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#64748B;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:'DM Sans'}
+.fc:hover{border-color:rgba(255,255,255,.2);color:#CBD5E1}
+.fc.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25);color:#60A5FA;font-weight:600}
+
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.mic{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;transition:.2s}
+.mic.off{opacity:.5}
+.mic-img{position:relative;height:140px;overflow:hidden}
+.mic-img img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+.mic-img img.gray{filter:grayscale(100%);opacity:.55}
+.mic-closed-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+.mic-closed-badge span{background:#E53E3E;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;letter-spacing:.5px}
+.mic-body{padding:14px}
+.mic-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.mic-name{font-size:14px;font-weight:700;flex:1}
+.mic-price-tag{font-family:'IBM Plex Mono';font-size:15px;font-weight:600;color:#E2E8F0;flex-shrink:0;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px}
+.mic-price-tag:hover{color:#60A5FA;border-color:#60A5FA}
+.mic-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;margin-bottom:6px}
+.mic-desc{font-size:12px;color:#475569;line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mic-footer{display:flex;align-items:center;justify-content:space-between}
+.avail-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+.tog{width:38px;height:21px;border-radius:11px;position:relative;transition:.25s;flex-shrink:0}
+.tog.on{background:#16A34A}.tog.off{background:#374151}
+.tog::after{content:'';position:absolute;width:17px;height:17px;background:#fff;border-radius:50%;top:2px;transition:.25s}
+.tog.on::after{left:19px}.tog.off::after{left:2px}
+.avail-lbl{font-size:12px;font-weight:600}
+.avail-lbl.on{color:#4ADE80}.avail-lbl.off{color:#EF4444}
+.mic-actions{display:flex;gap:5px}
+.mic-btn{padding:5px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#64748B;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans';transition:.12s}
+.mic-btn:hover{background:rgba(255,255,255,.06);color:#CBD5E1}
+.mic-btn.img-btn:hover{color:#60A5FA;border-color:rgba(59,130,246,.3)}
+
+/* ── HERO MANAGER ── */
+.hero-manager{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden}
+.hero-preview{position:relative;height:200px;overflow:hidden}
+.hero-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-preview-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.85));display:flex;align-items:flex-end;padding:16px}
+.hero-preview-text{flex:1}
+.hero-preview-text h3{font-size:20px;font-weight:900}
+.hero-preview-text p{font-size:12px;color:rgba(255,255,255,.55)}
+.hero-manager-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569}
+.form-input{background:#0B0D11;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#E2E8F0;font-family:'DM Sans';font-size:14px;outline:none;width:100%;transition:.2s}
+.form-input:focus{border-color:#3B82F6}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.img-url-row{display:flex;gap:8px}
+.img-url-row .form-input{flex:1}
+.hero-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hero-opt{border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:.2s;position:relative;height:72px}
+.hero-opt img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-opt.selected{border-color:#E8390E}
+.hero-opt-check{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:#E8390E;display:none;align-items:center;justify-content:center;font-size:10px}
+.hero-opt.selected .hero-opt-check{display:flex}
+
+/* ── API PANEL ── */
+.api-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.api-card{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px}
+.api-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.api-name{font-size:14px;font-weight:700}
+.api-status{display:flex;align-items:center;gap:6px}
+.api-dot{width:7px;height:7px;border-radius:50%}
+.api-dot.connected{background:#4ADE80;box-shadow:0 0 6px #4ADE80}
+.api-dot.disconnected{background:#EF4444}
+.api-dot.pending{background:#FCD34D;animation:blink 1s infinite}
+.api-status-txt{font-size:11px;font-weight:600}
+.api-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.api-field-row{display:flex;flex-direction:column;gap:4px}
+.api-field-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569}
+.api-field-input{background:#0B0D11;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;color:#E2E8F0;font-family:'IBM Plex Mono';font-size:12px;width:100%;outline:none}
+.api-field-input:focus{border-color:#3B82F6}
+.api-field-input.masked{-webkit-text-security:disc;font-size:14px}
+.api-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.api-stat-item{background:#171B22;border-radius:8px;padding:10px}
+.api-stat-label{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.api-stat-val{font-family:'IBM Plex Mono';font-size:15px;font-weight:600;color:#E2E8F0}
+.api-btn-row{display:flex;gap:6px}
+.api-btn{flex:1;padding:8px;border-radius:8px;border:none;font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.api-btn.sync{background:rgba(59,130,246,.1);color:#93C5FD;border:1px solid rgba(59,130,246,.2)}
+.api-btn.sync:hover{background:rgba(59,130,246,.2)}
+.api-btn.test{background:rgba(255,255,255,.05);color:#64748B;border:1px solid rgba(255,255,255,.08)}
+.api-btn.test:hover{background:rgba(255,255,255,.1)}
+.api-btn.connect{background:#3B82F6;color:#fff;border:1px solid #3B82F6}
+.api-btn.connect:hover{background:#2563EB}
+.api-btn.disconnect{background:rgba(229,62,62,.08);color:#FCA5A5;border:1px solid rgba(229,62,62,.15)}
+.api-btn.disconnect:hover{background:rgba(229,62,62,.15)}
+.comm-bar{margin-top:4px}
+.comm-labels{display:flex;justify-content:space-between;font-size:11px;color:#475569;margin-bottom:4px}
+.comm-track{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.comm-fill{height:100%;border-radius:2px}
+
+/* ── SYNC INDICATOR ── */
+.sync-row{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.12);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.sync-left{display:flex;align-items:center;gap:10px}
+.sync-spinner{width:16px;height:16px;border:2px solid rgba(59,130,246,.2);border-top-color:#3B82F6;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sync-text{font-size:12px;font-weight:600;color:#93C5FD}
+.sync-time{font-size:11px;color:#475569;font-family:'IBM Plex Mono'}
+
+/* ── WORKING HOURS ── */
+.hours-card{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px}
+.hours-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.hours-status{display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:12px 14px;border-radius:12px}
+.hours-status.open{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.15)}
+.hours-status.closed{background:rgba(229,62,62,.08);border:1px solid rgba(229,62,62,.15)}
+.hs-dot{width:8px;height:8px;border-radius:50%}
+.hs-dot.open{background:#4ADE80;box-shadow:0 0 8px #4ADE80}
+.hs-dot.closed{background:#EF4444}
+.hours-form{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:center}
+.day-label{font-size:12px;font-weight:600;color:#64748B}
+.hours-toggle-cell{display:flex;align-items:center;gap:6px}
+.day-toggle{width:32px;height:18px;border-radius:9px;position:relative;cursor:pointer;transition:.2s;border:none}
+.day-toggle.on{background:#16A34A}.day-toggle.off{background:#374151}
+.day-toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;transition:.2s}
+.day-toggle.on::after{left:16px}.day-toggle.off::after{left:2px}
+.time-input{background:#0B0D11;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px 12px;color:#E2E8F0;font-family:'IBM Plex Mono';font-size:13px;width:100%;outline:none;text-align:center}
+.time-input:focus{border-color:#3B82F6}
+
+/* ── KITCHEN ── */
+.kitchen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.kitchen-grid{grid-template-columns:1fr}}
+.k-col-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.k-col-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.k-col-cnt{font-family:'IBM Plex Mono';font-size:11px;color:#475569;background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px}
+.ticket{background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;border-left:3px solid;margin-bottom:10px;transition:.15s}
+.ticket:hover{background:#171B22}
+.ticket.tnew{border-left-color:#E53E3E}.ticket.tprep{border-left-color:#D97706}.ticket.tready{border-left-color:#16A34A}
+.tk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tk-num{font-family:'IBM Plex Mono';font-size:14px;font-weight:600}
+.ch-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.ch-masa{background:rgba(59,130,246,.1);color:#93C5FD}.ch-tr{background:rgba(249,115,22,.1);color:#FDBA74}.ch-gt{background:rgba(139,92,246,.1);color:#C4B5FD}.ch-wp{background:rgba(34,197,94,.1);color:#86EFAC}.ch-ig{background:rgba(236,72,153,.1);color:#F9A8D4}
+.tk-items{list-style:none;margin-bottom:10px}
+.tk-items li{font-size:12px;color:#64748B;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between}
+.tk-items li:last-child{border:none}
+.tk-qty{font-family:'IBM Plex Mono';font-size:10px;font-weight:600;color:#475569;background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px}
+.tk-foot{display:flex;align-items:center;justify-content:space-between}
+.tk-timer{font-family:'IBM Plex Mono';font-size:11px;display:flex;align-items:center;gap:4px;color:#475569}
+.tdot{width:5px;height:5px;border-radius:50%}.tkr{background:#E53E3E}.tka{background:#D97706}.tkg{background:#16A34A}
+.tk-btns{display:flex;gap:5px}
+.tk-btn{padding:5px 10px;border-radius:6px;border:none;font-family:'DM Sans';font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.tkb-start{background:rgba(59,130,246,.1);color:#93C5FD;border:1px solid rgba(59,130,246,.15)}
+.tkb-start:hover{background:rgba(59,130,246,.2)}
+.tkb-print{background:rgba(255,255,255,.05);color:#64748B;border:1px solid rgba(255,255,255,.08)}
+.tkb-print:hover{background:rgba(255,255,255,.1)}
+.tkb-done{background:rgba(22,163,74,.1);color:#86EFAC;border:1px solid rgba(22,163,74,.15)}
+.tkb-done:hover{background:rgba(22,163,74,.2)}
+
+/* ── EDIT MODAL ── */
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#161A23;border:1px solid rgba(255,255,255,.1);border-radius:20px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto}
+.modal-head{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#161A23;z-index:1}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,.07);color:#E2E8F0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal-img-preview{width:100%;height:160px;border-radius:14px;overflow:hidden;position:relative;margin-bottom:4px}
+.modal-img-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.img-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.img-opt{height:60px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:.2s}
+.img-opt img{width:100%;height:100%;object-fit:cover}
+.img-opt.sel{border-color:#E8390E}
+.modal-footer{padding:0 20px 20px;display:flex;gap:8px}
+.modal-save{flex:1;padding:12px;border:none;border-radius:12px;background:#3B82F6;color:#fff;font-family:'DM Sans';font-size:14px;font-weight:700;cursor:pointer}
+.modal-save:hover{background:#2563EB}
+.modal-cancel{padding:12px 18px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:transparent;color:#94A3B8;font-family:'DM Sans';font-size:14px;cursor:pointer}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:#1E232C;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 18px;font-size:13px;opacity:0;transform:translateY(6px);transition:.25s;pointer-events:none;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">A</div>
+    <div class="hdr-name">ATOM KUMPİR<br><span>& BURGER & WAFFLE</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nt active" onclick="switchPanel('dashboard',this)">Dashboard</button>
+    <button class="nt" onclick="switchPanel('menu',this)">Menü & Stok</button>
+    <button class="nt" onclick="switchPanel('hero',this)">Ana Ekran</button>
+    <button class="nt" onclick="switchPanel('api',this)">Pazaryeri API</button>
+    <button class="nt" onclick="switchPanel('kitchen',this)">Mutfak</button>
+    <button class="nt" onclick="switchPanel('hours',this)">Çalışma Saatleri</button>
+  </div>
+  <div class="hdr-right">
+    <div class="live-pill"><div class="ldot"></div> CANLI</div>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-sec">Operasyon</div>
+    <div class="sb-item active"><span class="ico">▦</span>Dashboard</div>
+    <div class="sb-item"><span class="ico">🍽</span>Menü & Stok</div>
+    <div class="sb-item"><span class="ico">🖼</span>Ana Ekran</div>
+    <div class="sb-item"><span class="ico">🍳</span>Mutfak<span class="nb">5</span></div>
+    <div class="sb-item"><span class="ico">📋</span>Siparişler<span class="nb amber">12</span></div>
+    <div class="sb-item"><span class="ico">🛵</span>Teslimat</div>
+    <div class="sb-sec">Yönetim</div>
+    <div class="sb-item"><span class="ico">📦</span>Pazaryeri API</div>
+    <div class="sb-item"><span class="ico">🕐</span>Çalışma Saatleri</div>
+    <div class="sb-item"><span class="ico">💰</span>Cüzdan/Puan</div>
+    <div class="sb-item"><span class="ico">📈</span>Raporlar</div>
+    <div class="sb-sec">Sistem</div>
+    <div class="sb-item"><span class="ico">⚙️</span>Ayarlar</div>
+    <div class="sb-item"><span class="ico">🖨</span>Yazıcı</div>
+    <div class="sb-item"><span class="ico">📡</span>NFC/Masalar</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Günlük Özet</h2><p>Pazartesi, 2 Mart 2026 · Tüm kanallar</p></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card sc-blue"><div class="s-lbl">Günlük Ciro</div><div class="s-val sv-blue">₺18.4K</div><div class="s-delta">▲ %23 · dünden iyi</div></div>
+        <div class="stat-card sc-green"><div class="s-lbl">Toplam Sipariş</div><div class="s-val sv-green">247</div><div class="s-delta">▲ %15 · 5 kanal</div></div>
+        <div class="stat-card sc-amber"><div class="s-lbl">Ort. Sepet</div><div class="s-val sv-amber">₺74.5</div><div class="s-delta">Direkt: ₺82</div></div>
+        <div class="stat-card sc-red"><div class="s-lbl">Tükenen Ürün</div><div class="s-val sv-red" id="outOfStockCount">1</div><div class="s-delta">Menüden gizlendi</div></div>
+      </div>
+      <div class="sync-row">
+        <div class="sync-left">
+          <div class="sync-spinner"></div>
+          <span class="sync-text">Pazaryerleri ile senkronize ediliyor · Otomatik</span>
+        </div>
+        <span class="sync-time" id="lastSync">Son: az önce</span>
+      </div>
+      <!-- Recent orders mini -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:14px;font-weight:700">Son Siparişler</span>
+          <button class="btn">Tümünü Gör</button>
+        </div>
+        <div style="background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:50px 1fr 90px 80px 70px;padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;border-bottom:1px solid rgba(255,255,255,.05)"><span>#</span><span>Kanal</span><span>Tutar</span><span>Durum</span><span>İşlem</span></div>
+          <div id="ordersTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MENU & STOCK ═══ -->
+    <div class="panel" id="panel-menu">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Menü & Stok Yönetimi</h2><p>Ürünleri aç/kapat · Fiyat ve görsel düzenle · Pazaryerine otomatik yansır</p></div>
+        <div class="btn-row">
+          <button class="btn danger" onclick="toggleAll(false)">🔴 Tümünü Kapat</button>
+          <button class="btn success" onclick="toggleAll(true)">🟢 Tümünü Aç</button>
+          <button class="btn primary" onclick="openNewItemModal()">+ Ürün Ekle</button>
+        </div>
+      </div>
+      <div class="filter-bar" id="filterBar">
+        <button class="fc active" onclick="filterMenu('all',this)">Tümü (9)</button>
+        <button class="fc" onclick="filterMenu('kumpir',this)">🥔 Kumpir</button>
+        <button class="fc" onclick="filterMenu('burger',this)">🍔 Burger</button>
+        <button class="fc" onclick="filterMenu('waffle',this)">🧇 Waffle</button>
+        <button class="fc" onclick="filterMenu('drink',this)">🥤 İçecek</button>
+      </div>
+      <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.12);border-radius:10px;padding:10px 14px;font-size:12px;color:#93C5FD;display:flex;align-items:center;gap:8px">
+        <span>🔄</span> Stok değişiklikleri Trendyol, Getir ve Yemeksepeti API'sine otomatik olarak iletilir. Değişiklikler ~30 saniyede yansır.
+      </div>
+      <div class="menu-grid" id="menuGrid"></div>
+    </div>
+
+    <!-- ═══ HERO / ANA EKRAN ═══ -->
+    <div class="panel" id="panel-hero">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Ana Ekran Yönetimi</h2><p>Müşteri ekranında görünen hero fotoğrafı, başlık ve alt bilgiyi düzenleyin</p></div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="saveHeroSettings()">💾 Kaydet & Yayınla</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div class="hero-manager">
+            <div class="hero-preview">
+              <img id="heroPreviewImg" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80&auto=format&fit=crop" alt="">
+              <div class="hero-preview-overlay">
+                <div class="hero-preview-text">
+                  <h3 id="heroPreviewTitle">El Yapımı Smash Burger</h3>
+                  <p id="heroPreviewSub">Taze · Sıcak · Lezzetli</p>
+                </div>
+              </div>
+            </div>
+            <div class="hero-manager-body">
+              <div class="form-row">
+                <div class="form-label">Başlık (Satır 1)</div>
+                <input class="form-input" id="heroLine1" value="El Yapımı" oninput="updateHeroPreview()">
+              </div>
+              <div class="form-row">
+                <div class="form-label">Başlık (Satır 2)</div>
+                <input class="form-input" id="heroLine2" value="Smash Burger" oninput="updateHeroPreview()">
+              </div>
+              <div class="form-row">
+                <div class="form-label">Alt Başlık</div>
+                <input class="form-input" id="heroSubInput" value="Taze · Sıcak · Lezzetli" oninput="updateHeroPreview()">
+              </div>
+              <div class="form-row">
+                <div class="form-label">Etiket</div>
+                <input class="form-input" id="heroTagInput" value="🔥 Günün Önerisi" oninput="updateHeroPreview()">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px">
+            <div class="form-label" style="margin-bottom:10px">Fotoğraf URL'si Gir</div>
+            <div class="img-url-row">
+              <input class="form-input" id="heroUrlInput" placeholder="https://images.unsplash.com/..." oninput="previewHeroUrl()">
+              <button class="btn primary" onclick="applyHeroUrl()">Uygula</button>
+            </div>
+          </div>
+          <div style="background:#111419;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px">
+            <div class="form-label" style="margin-bottom:10px">Hazır Fotoğraflar</div>
+            <div class="hero-options">
+              <div class="hero-opt selected" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+              <div class="hero-opt" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+              <div class="hero-opt" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+              <div class="hero-opt" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+              <div class="hero-opt" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+              <div class="hero-opt" onclick="selectHeroPreset(this,'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=800&q=80&auto=format&fit=crop')">
+                <img src="https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=200&q=70&auto=format&fit=crop" alt="">
+                <div class="hero-opt-check">✓</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:rgba(250,204,21,.05);border:1px solid rgba(250,204,21,.12);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.55)">
+            💡 Değişiklikler kaydedildikten sonra müşteri ekranına anında yansır. Önerilen boyut: <strong style="color:#FACC15">900×400px</strong> veya üstü.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAZARYERI API ═══ -->
+    <div class="panel" id="panel-api">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Pazaryeri API Entegrasyonları</h2><p>Stok durumu, fiyat ve ürün değişiklikleri otomatik senkronize edilir</p></div>
+        <button class="btn primary" onclick="syncAll()">🔄 Tümünü Senkronize Et</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-left"><div class="sync-spinner"></div><span class="sync-text">Tüm pazaryerleri ile aktif bağlantı · Otomatik senkronizasyon</span></div>
+        <span class="sync-time">Son sync: <span id="apiLastSync">14:23:07</span></span>
+      </div>
+      <div class="api-grid" id="apiGrid"></div>
+    </div>
+
+    <!-- ═══ KITCHEN ═══ -->
+    <div class="panel" id="panel-kitchen">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Mutfak Ekranı</h2><p>Tüm kanallar · Gerçek zamanlı akış</p></div>
+        <div class="btn-row">
+          <button class="btn" onclick="showToast('🖨 Tüm bekleyenler yazdırılıyor...')">🖨 Toplu Yazdır</button>
+          <button class="btn primary">Yenile</button>
+        </div>
+      </div>
+      <div class="kitchen-grid">
+        <div>
+          <div class="k-col-hdr"><span class="k-col-title" style="color:#EF4444">● Yeni</span><span class="k-col-cnt">3</span></div>
+          <div class="ticket tnew"><div class="tk-top"><span class="tk-num">#047</span><span class="ch-tag ch-masa">Masa 7</span></div><ul class="tk-items"><li><span>Kumpir Spesyal</span><span class="tk-qty">×2</span></li><li><span>Smash Burger</span><span class="tk-qty">×1</span></li><li><span>Limonata</span><span class="tk-qty">×2</span></li></ul><div class="tk-foot"><span class="tk-timer"><span class="tdot tkr"></span>0 dk</span><div class="tk-btns"><button class="tk-btn tkb-print" onclick="showToast('🖨 #047 yazdırılıyor...')">🖨</button><button class="tk-btn tkb-start" onclick="showToast('✓ #047 → Hazırlanıyor')">Başla →</button></div></div></div>
+          <div class="ticket tnew"><div class="tk-top"><span class="tk-num">#048</span><span class="ch-tag ch-tr">Trendyol</span></div><ul class="tk-items"><li><span>Double Smash</span><span class="tk-qty">×1</span></li><li><span>Waffle Tatlı</span><span class="tk-qty">×1</span></li></ul><div class="tk-foot"><span class="tk-timer" style="font-size:10px;color:#475569">⚡ Oto-onay</span><div class="tk-btns"><button class="tk-btn tkb-print" onclick="showToast('🖨 Yazdırılıyor...')">🖨</button><button class="tk-btn tkb-start" onclick="showToast('✓ Başlandı')">Başla →</button></div></div></div>
+        </div>
+        <div>
+          <div class="k-col-hdr"><span class="k-col-title" style="color:#D97706">● Hazırlanıyor</span><span class="k-col-cnt">2</span></div>
+          <div class="ticket tprep"><div class="tk-top"><span class="tk-num">#044</span><span class="ch-tag ch-gt">Getir</span></div><ul class="tk-items"><li><span>Kumpir Klasik</span><span class="tk-qty">×2</span></li><li><span>Milkshake</span><span class="tk-qty">×1</span></li></ul><div class="tk-foot"><span class="tk-timer"><span class="tdot tka"></span>8 dk</span><div class="tk-btns"><button class="tk-btn tkb-done" onclick="showToast('✅ #044 Hazır!')">Hazır ✓</button></div></div></div>
+          <div class="ticket tprep"><div class="tk-top"><span class="tk-num">#045</span><span class="ch-tag ch-masa">Masa 3</span></div><ul class="tk-items"><li><span>Waffle Karışık</span><span class="tk-qty">×1</span></li><li><span>Limonata</span><span class="tk-qty">×2</span></li></ul><div class="tk-foot"><span class="tk-timer"><span class="tdot tka"></span>6 dk</span><div class="tk-btns"><button class="tk-btn tkb-done" onclick="showToast('✅ #045 Hazır!')">Hazır ✓</button></div></div></div>
+        </div>
+        <div>
+          <div class="k-col-hdr"><span class="k-col-title" style="color:#16A34A">● Hazır / Teslim</span><span class="k-col-cnt">3</span></div>
+          <div class="ticket tready"><div class="tk-top"><span class="tk-num">#041</span><span class="ch-tag ch-masa">Masa 2</span></div><ul class="tk-items"><li><span>Smash Burger Menü</span><span class="tk-qty">×2</span></li></ul><div class="tk-foot"><span class="tk-timer"><span class="tdot tkg"></span>Servis edildi</span></div></div>
+          <div class="ticket tready"><div class="tk-top"><span class="tk-num">#042</span><span class="ch-tag ch-tr">Trendyol</span></div><ul class="tk-items"><li><span>Kumpir + İçecek</span><span class="tk-qty">×1</span></li></ul><div class="tk-foot"><span class="tk-timer"><span class="tdot tkg"></span>🛵 Kurye teslim aldı</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ÇALIŞMA SAATLERİ ═══ -->
+    <div class="panel" id="panel-hours">
+      <div class="pg-head">
+        <div class="pg-title"><h2>Çalışma Saatleri</h2><p>Müşteri ekranında kapalı uyarısı ve geri sayım otomatik gösterilir</p></div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="saveHours()">💾 Kaydet</button>
+        </div>
+      </div>
+
+      <div class="hours-card">
+        <div class="hours-title">
+          🕐 Güncel Durum
+          <span id="currentStatusBadge" style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px"></span>
+        </div>
+        <div class="hours-status" id="hoursStatusBox">
+          <div class="hs-dot" id="hoursStatusDot"></div>
+          <div>
+            <div style="font-size:14px;font-weight:700" id="hoursStatusTitle"></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px" id="hoursStatusSub"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;margin-bottom:10px">Haftalık Program</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="hoursForm"></div>
+        </div>
+
+        <div style="background:rgba(232,57,14,.06);border:1px solid rgba(232,57,14,.15);border-radius:12px;padding:14px">
+          <div style="font-size:12px;font-weight:700;color:#FF6B3D;margin-bottom:6px">🔔 Otomatik Uyarı Sistemi</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.7">
+            Müşteri ekranı çalışma saatleri dışında otomatik olarak <strong style="color:#fff">kapalı ekranı</strong> gösterir. Açılmaya kadar geri sayım yapılır. Pazaryeri API'leri de çalışma saatlerine göre otomatik açılıp kapanır.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── EDIT MODAL ── -->
+<div class="modal-bg" id="editModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Ürün Düzenle</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-img-preview">
+        <img id="modalImgPreview" src="" alt="">
+      </div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;margin-bottom:8px">Fotoğraf Seç</div>
+      <div class="img-grid" id="imgGrid"></div>
+      <div class="form-row">
+        <div class="form-label">Fotoğraf URL</div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="editImgUrl" placeholder="https://...">
+          <button class="btn primary" onclick="applyEditImgUrl()" style="white-space:nowrap">Uygula</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">Ürün Adı</div>
+        <input class="form-input" id="editName">
+      </div>
+      <div class="form-row-2">
+        <div class="form-row">
+          <div class="form-label">Fiyat (₺)</div>
+          <input class="form-input" id="editPrice" type="number" min="1">
+        </div>
+        <div class="form-row">
+          <div class="form-label">Kategori</div>
+          <select class="form-input" id="editCat" style="cursor:pointer">
+            <option value="kumpir">Kumpir</option>
+            <option value="burger">Burger</option>
+            <option value="waffle">Waffle</option>
+            <option value="drink">İçecek</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">Açıklama</div>
+        <textarea class="form-input" id="editDesc" rows="3" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal()">İptal</button>
+      <button class="modal-save" onclick="saveEdit()">💾 Kaydet & Pazaryerine Gönder</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ── DATA ──
+let MENU=[
+  {id:1,name:'Kumpir Klasik',cat:'kumpir',img:'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&q=80&auto=format&fit=crop',desc:'Fırında pişmiş büyük patates, tereyağı, mısır, siyah zeytin ve mevsim salata.',price:149,available:true},
+  {id:2,name:'Kumpir Spesyal',cat:'kumpir',img:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80&auto=format&fit=crop',desc:'Ton balığı, konserve fasulye, mısır, özel sos ve taze sebzeler.',price:179,available:true},
+  {id:3,name:'Smash Burger',cat:'burger',img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80&auto=format&fit=crop',desc:'200g dana eti, cheddar peyniri, özel sos, taze domates ve turşu.',price:189,available:true},
+  {id:4,name:'Double Smash',cat:'burger',img:'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&q=80&auto=format&fit=crop',desc:'400g çift katlı dana pati, double cheddar, jalapeño ve BBQ sos.',price:239,available:true},
+  {id:5,name:'Crispy Chicken',cat:'burger',img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=600&q=80&auto=format&fit=crop',desc:'Çıtır tavuk göğsü, ranch sos ve coleslaw.',price:175,available:true},
+  {id:6,name:'Waffle Tatlı',cat:'waffle',img:'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=600&q=80&auto=format&fit=crop',desc:'Belçika waffle, Nutella, taze çilek ve dondurma.',price:139,available:true},
+  {id:7,name:'Waffle Karışık',cat:'waffle',img:'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600&q=80&auto=format&fit=crop',desc:'Muz, karamel sos, fındık krokan ve vanilyalı dondurma.',price:159,available:false},
+  {id:8,name:'Limonata',cat:'drink',img:'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=600&q=80&auto=format&fit=crop',desc:'Taze sıkılmış limon, nane ve buz.',price:65,available:true},
+  {id:9,name:'Milkshake',cat:'drink',img:'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80&auto=format&fit=crop',desc:'Çikolata veya vanilyalı milkshake, üstünde krema.',price:95,available:true},
+];
+
+const IMG_GALLERY=[
+  'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400&q=70&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=400&q=70&auto=format&fit=crop',
+];
+
+let menuFilter='all', editingId=null;
+
+// ── HOURS DATA ──
+const DAYS=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+let hoursData=DAYS.map((d,i)=>({day:d,open:i<5,from:'11:30',to:'23:45'}));
+
+// ── API DATA ──
+const API_DATA=[
+  {name:'Trendyol Yemek',color:'#FDBA74',emoji:'🟠',orders:68,rev:'₺4.2K',comm:28,connected:true,key:'•••••••••TY8X2',restaurantId:'TR-48291'},
+  {name:'Getir Yemek',color:'#C4B5FD',emoji:'🟣',orders:52,rev:'₺3.1K',comm:27,connected:true,key:'•••••••••GF7K9',restaurantId:'GT-19384'},
+  {name:'Yemeksepeti',color:'#F9A8D4',emoji:'🔴',orders:41,rev:'₺2.8K',comm:25,connected:true,key:'•••••••••YS3M1',restaurantId:'YS-82710'},
+  {name:'WhatsApp Bot',color:'#86EFAC',emoji:'💬',orders:28,rev:'₺1.9K',comm:0,connected:true,key:'WA_META_TOKEN_••••••••',restaurantId:'WA-447XX'},
+  {name:'Instagram DM',color:'#A5B4FC',emoji:'📸',orders:14,rev:'₺980',comm:0,connected:false,key:'',restaurantId:''},
+];
+
+// ── SYNC TO CUSTOMER SCREEN ──
+function syncToCustomer(){
+  try{sessionStorage.setItem('atom_menu',JSON.stringify(MENU))}catch(e){}
+}
+
+// ── RENDER MENU GRID ──
+function renderMenu(){
+  const grid=document.getElementById('menuGrid');
+  const f=menuFilter==='all'?MENU:MENU.filter(i=>i.cat===menuFilter);
+  grid.innerHTML=f.map(item=>`
+    <div class="mic${!item.available?' off':''}" id="mic-${item.id}">
+      <div class="mic-img">
+        <img src="${item.img}" alt="${item.name}"${!item.available?' class="gray"':''}>
+        ${!item.available?`<div class="mic-closed-badge"><span>STOK YOK</span></div>`:''}
+      </div>
+      <div class="mic-body">
+        <div class="mic-top">
+          <div>
+            <div class="mic-name">${item.name}</div>
+            <div class="mic-cat">${catLabel(item.cat)}</div>
+          </div>
+          <div class="mic-price-tag" onclick="openEdit(${item.id})" title="Fiyat düzenle">₺${item.price}</div>
+        </div>
+        <div class="mic-desc">${item.desc}</div>
+        <div class="mic-footer">
+          <div class="avail-row" onclick="toggleItem(${item.id})">
+            <div class="tog ${item.available?'on':'off'}" id="tt-${item.id}"></div>
+            <span class="avail-lbl ${item.available?'on':'off'}" id="al-${item.id}">${item.available?'Aktif':'Kapalı'}</span>
+          </div>
+          <div class="mic-actions">
+            <button class="mic-btn img-btn" onclick="openEdit(${item.id})">✏️ Düzenle</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('outOfStockCount').textContent=MENU.filter(i=>!i.available).length;
+}
+
+function catLabel(c){return{kumpir:'🥔 Kumpir',burger:'🍔 Burger',waffle:'🧇 Waffle',drink:'🥤 İçecek'}[c]||c}
+
+function filterMenu(cat,el){menuFilter=cat;document.querySelectorAll('.fc').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderMenu()}
+
+function toggleItem(id){
+  const item=MENU.find(i=>i.id===id);
+  item.available=!item.available;
+  syncToCustomer();
+  syncToPlatforms(item);
+  renderMenu();
+  showToast(`${item.available?'🟢':'🔴'} "${item.name}" ${item.available?'açıldı':'kapatıldı'} · Pazaryerlerine iletiliyor...`);
+}
+
+function toggleAll(on){
+  MENU.forEach(i=>i.available=on);
+  syncToCustomer();
+  renderMenu();
+  showToast(on?'🟢 Tüm ürünler açıldı · Pazaryerleri güncelleniyor...':'🔴 Tüm ürünler kapatıldı · Pazaryerleri güncelleniyor...');
+}
+
+function syncToPlatforms(item){
+  // Simulates API call to each connected marketplace
+  const connected=API_DATA.filter(a=>a.connected).map(a=>a.name);
+  setTimeout(()=>showToast(`✅ "${item.name}" → ${connected.join(', ')} güncellendi`),1500);
+}
+
+// ── EDIT MODAL ──
+function openEdit(id){
+  editingId=id;
+  const item=MENU.find(i=>i.id===id);
+  document.getElementById('modalTitle').textContent='Düzenle: '+item.name;
+  document.getElementById('modalImgPreview').src=item.img;
+  document.getElementById('editName').value=item.name;
+  document.getElementById('editPrice').value=item.price;
+  document.getElementById('editCat').value=item.cat;
+  document.getElementById('editDesc').value=item.desc;
+  document.getElementById('editImgUrl').value='';
+  document.getElementById('imgGrid').innerHTML=IMG_GALLERY.map(url=>`
+    <div class="img-opt${item.img===url?' sel':''}" onclick="selectEditImg(this,'${url}')">
+      <img src="${url}" alt="">
+    </div>`).join('');
+  document.getElementById('editModal').classList.add('open');
+}
+
+function openNewItemModal(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Yeni Ürün Ekle';
+  document.getElementById('modalImgPreview').src=IMG_GALLERY[0];
+  document.getElementById('editName').value='';
+  document.getElementById('editPrice').value='';
+  document.getElementById('editCat').value='kumpir';
+  document.getElementById('editDesc').value='';
+  document.getElementById('editImgUrl').value='';
+  document.getElementById('imgGrid').innerHTML=IMG_GALLERY.map((url,i)=>`
+    <div class="img-opt${i===0?' sel':''}" onclick="selectEditImg(this,'${url}')">
+      <img src="${url}" alt="">
+    </div>`).join('');
+  document.getElementById('editModal').classList.add('open');
+}
+
+function selectEditImg(el,url){
+  document.querySelectorAll('#imgGrid .img-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('modalImgPreview').src=url;
+}
+
+function applyEditImgUrl(){
+  const url=document.getElementById('editImgUrl').value.trim();
+  if(url){document.getElementById('modalImgPreview').src=url;showToast('✓ Görsel önizleniyor')}
+}
+
+function saveEdit(){
+  const name=document.getElementById('editName').value.trim();
+  const price=parseInt(document.getElementById('editPrice').value);
+  const cat=document.getElementById('editCat').value;
+  const desc=document.getElementById('editDesc').value.trim();
+  const img=document.getElementById('modalImgPreview').src;
+  if(!name||!price){showToast('⚠️ Ad ve fiyat zorunlu');return}
+
+  if(editingId){
+    const item=MENU.find(i=>i.id===editingId);
+    item.name=name;item.price=price;item.cat=cat;item.desc=desc;item.img=img;
+    showToast(`✅ "${name}" güncellendi · Pazaryerlerine iletiliyor...`);
+  } else {
+    MENU.push({id:Date.now(),name,cat,img,desc,price,available:true});
+    showToast(`✅ "${name}" eklendi · Pazaryerlerine iletiliyor...`);
+  }
+  syncToCustomer();
+  closeModal();
+  renderMenu();
+}
+
+function closeModal(){document.getElementById('editModal').classList.remove('open')}
+
+// ── HERO MANAGER ──
+function updateHeroPreview(){
+  const l1=document.getElementById('heroLine1').value;
+  const l2=document.getElementById('heroLine2').value;
+  const sub=document.getElementById('heroSubInput').value;
+  document.getElementById('heroPreviewTitle').textContent=l1+' '+l2;
+  document.getElementById('heroPreviewSub').textContent=sub;
+}
+
+function selectHeroPreset(el,url){
+  document.querySelectorAll('.hero-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('heroPreviewImg').src=url;
+}
+
+function previewHeroUrl(){
+  const url=document.getElementById('heroUrlInput').value.trim();
+  if(url.startsWith('http'))document.getElementById('heroPreviewImg').src=url;
+}
+
+function applyHeroUrl(){
+  const url=document.getElementById('heroUrlInput').value.trim();
+  if(url){document.getElementById('heroPreviewImg').src=url;showToast('✓ Görsel uygulandı')}
+}
+
+function saveHeroSettings(){
+  showToast('✅ Ana ekran güncellendi · Müşteri ekranına yansıtıldı!');
+}
+
+// ── API GRID ──
+function renderAPI(){
+  document.getElementById('apiGrid').innerHTML=API_DATA.map((a,i)=>`
+    <div class="api-card">
+      <div class="api-card-top">
+        <span class="api-name" style="color:${a.color}">${a.emoji} ${a.name}</span>
+        <div class="api-status">
+          <div class="api-dot ${a.connected?'connected':'disconnected'}"></div>
+          <span class="api-status-txt" style="color:${a.connected?'#4ADE80':'#EF4444'}">${a.connected?'Bağlı':'Bağlı Değil'}</span>
+        </div>
+      </div>
+      <div class="api-fields">
+        <div class="api-field-row">
+          <div class="api-field-label">API Key / Token</div>
+          <input class="api-field-input masked" value="${a.key||''}" placeholder="API anahtarınızı girin..." id="apikey-${i}" ${a.connected?'':'style="border-color:rgba(229,62,62,.2)"'}>
+        </div>
+        <div class="api-field-row">
+          <div class="api-field-label">Restoran ID</div>
+          <input class="api-field-input" value="${a.restaurantId||''}" placeholder="Platform restoran ID" id="apirid-${i}">
+        </div>
+      </div>
+      ${a.connected?`<div class="api-stats">
+        <div class="api-stat-item"><div class="api-stat-label">Bugün</div><div class="api-stat-val">${a.orders}</div></div>
+        <div class="api-stat-item"><div class="api-stat-label">Ciro</div><div class="api-stat-val">${a.rev}</div></div>
+      </div>
+      <div class="comm-bar" style="margin-bottom:12px">
+        <div class="comm-labels"><span>Komisyon %${a.comm}</span><span style="color:${a.comm?'#EF4444':'#4ADE80'}">${a.comm?`Ödenen komisyon`:'Komisyonsuz 🎉'}</span></div>
+        <div class="comm-track"><div class="comm-fill" style="width:${a.comm}%;background:${a.comm?'#EF4444':'#16A34A'}"></div></div>
+      </div>`:''}
+      <div class="api-btn-row">
+        ${a.connected
+          ?`<button class="api-btn sync" onclick="syncPlatform(${i})">🔄 Sync</button>
+             <button class="api-btn test" onclick="testPlatform(${i})">Test Et</button>
+             <button class="api-btn disconnect" onclick="disconnectPlatform(${i})">Kes</button>`
+          :`<button class="api-btn connect" onclick="connectPlatform(${i})" style="flex:1">🔌 Bağlan</button>`
+        }
+      </div>
+    </div>`).join('');
+}
+
+function syncPlatform(i){
+  const dot=document.querySelector(`#apiGrid .api-card:nth-child(${i+1}) .api-dot`);
+  if(dot){dot.className='api-dot pending'}
+  showToast(`🔄 ${API_DATA[i].name} senkronize ediliyor...`);
+  setTimeout(()=>{if(dot)dot.className='api-dot connected';showToast(`✅ ${API_DATA[i].name} senkronize edildi!`)},2000);
+}
+function testPlatform(i){showToast(`🧪 ${API_DATA[i].name} bağlantısı test ediliyor...`);setTimeout(()=>showToast(`✅ Bağlantı başarılı · ${API_DATA[i].name}`),1500)}
+function connectPlatform(i){
+  const key=document.getElementById(`apikey-${i}`).value.trim();
+  const rid=document.getElementById(`apirid-${i}`).value.trim();
+  if(!key||!rid){showToast('⚠️ API Key ve Restoran ID gerekli');return}
+  showToast(`🔌 ${API_DATA[i].name} bağlanıyor...`);
+  setTimeout(()=>{API_DATA[i].connected=true;API_DATA[i].key=key;API_DATA[i].restaurantId=rid;renderAPI();showToast(`✅ ${API_DATA[i].name} bağlandı!`)},1800);
+}
+function disconnectPlatform(i){API_DATA[i].connected=false;renderAPI();showToast(`❌ ${API_DATA[i].name} bağlantısı kesildi`)}
+function syncAll(){API_DATA.filter(a=>a.connected).forEach((_,i)=>setTimeout(()=>syncPlatform(i),i*300));showToast('🔄 Tüm pazaryerleri senkronize ediliyor...')}
+
+// ── HOURS ──
+function renderHours(){
+  const form=document.getElementById('hoursForm');
+  form.innerHTML=hoursData.map((d,i)=>`
+    <div style="display:grid;grid-template-columns:110px 40px 1fr 16px 1fr;gap:10px;align-items:center;padding:10px 12px;background:#0B0D11;border-radius:10px;border:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:13px;font-weight:600;color:${d.open?'#E2E8F0':'#475569'}">${d.day}</span>
+      <button class="day-toggle ${d.open?'on':'off'}" onclick="toggleDay(${i})"></button>
+      ${d.open
+        ?`<input class="time-input" value="${d.from}" onchange="hoursData[${i}].from=this.value" ${!d.open?'disabled':''}>
+           <span style="font-size:11px;color:#475569;text-align:center">—</span>
+           <input class="time-input" value="${d.to}" onchange="hoursData[${i}].to=this.value" ${!d.open?'disabled':''}>`
+        :`<span style="font-size:12px;color:#475569;grid-column:3/6">Kapalı</span>`
+      }
+    </div>`).join('');
+
+  // Current status
+  const now=new Date();
+  const today=hoursData[(now.getDay()+6)%7];
+  const cur=now.getHours()*60+now.getMinutes();
+  const [oh,om]=today.from.split(':').map(Number);
+  const [ch,cm]=today.to.split(':').map(Number);
+  const isOpen=today.open&&cur>=(oh*60+om)&&cur<(ch*60+cm);
+
+  const box=document.getElementById('hoursStatusBox');
+  const dot=document.getElementById('hoursStatusDot');
+  const title=document.getElementById('hoursStatusTitle');
+  const sub=document.getElementById('hoursStatusSub');
+  const badge=document.getElementById('currentStatusBadge');
+
+  box.className='hours-status '+(isOpen?'open':'closed');
+  dot.className='hs-dot '+(isOpen?'open':'closed');
+  if(isOpen){
+    title.textContent='Şu An Açık';
+    sub.textContent=`Kapanış: ${today.to} · Bugün ${today.from}–${today.to}`;
+    badge.textContent='● AÇIK';badge.style.cssText='color:#4ADE80;background:rgba(22,163,74,.1)';
+  } else {
+    title.textContent='Şu An Kapalı';
+    sub.textContent=`Bugün ${today.open?today.from+'-'+today.to+' saatleri arası açık':'kapalı'}`;
+    badge.textContent='● KAPALI';badge.style.cssText='color:#EF4444;background:rgba(229,62,62,.1)';
+  }
+}
+
+function toggleDay(i){hoursData[i].open=!hoursData[i].open;renderHours()}
+function saveHours(){showToast('✅ Çalışma saatleri kaydedildi · Müşteri ekranına ve pazaryerlerine yansıtılıyor...')}
+
+// ── ORDERS TABLE ──
+function renderOrdersTable(){
+  const rows=[
+    {id:'047',ch:'ch-masa',src:'📍 Masa 7',sub:'NFC · 0 dk',amt:'₺218',st:'st-new',stl:'YENİ'},
+    {id:'046',ch:'ch-tr',src:'🟠 Trendyol',sub:'Ahmet K. · 5 dk',amt:'₺142',st:'st-prep',stl:'HAZIR.'},
+    {id:'045',ch:'ch-gt',src:'🟣 Getir',sub:'Selin M. · 8 dk',amt:'₺176',st:'st-del',stl:'TESLİM'},
+    {id:'044',ch:'ch-wp',src:'💬 WhatsApp',sub:'AI Bot · 14 dk',amt:'₺327',st:'st-ready',stl:'HAZIR'},
+    {id:'043',ch:'ch-ig',src:'📸 Instagram',sub:'DM Bot · 22 dk',amt:'₺309',st:'st-done',stl:'TAMAM'},
+  ];
+  const stColors={'st-new':'#FCA5A5','st-prep':'#FCD34D','st-del':'#93C5FD','st-ready':'#86EFAC','st-done':'#64748B'};
+  document.getElementById('ordersTable').innerHTML=rows.map(r=>`
+    <div style="display:grid;grid-template-columns:50px 1fr 90px 80px 70px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+      <span style="font-family:'IBM Plex Mono';font-size:12px;color:#475569">#${r.id}</span>
+      <div><span class="ch-tag ${r.ch}">${r.src}</span><div style="font-size:11px;color:#475569;margin-top:3px">${r.sub}</div></div>
+      <span style="font-family:'IBM Plex Mono';font-size:13px;font-weight:600">${r.amt}</span>
+      <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;display:inline-block;background:${stColors[r.st]}18;color:${stColors[r.st]}">${r.stl}</span>
+      <div style="display:flex;gap:5px">
+        <button style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#475569;font-size:12px;cursor:pointer" onclick="showToast('🖨 #${r.id} yazdırılıyor...')">🖨</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── PANEL NAV ──
+function switchPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nt').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toastEl');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── CLOCK ──
+setInterval(()=>{
+  document.getElementById('clock').textContent=
+    new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('apiLastSync').textContent=
+    new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+// ── INIT ──
+syncToCustomer();
+renderMenu();
+renderAPI();
+renderHours();
+renderOrdersTable();
+</script>
+</body>
+</html>

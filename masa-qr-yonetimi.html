@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATOM — Masa & QR Yönetimi</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#0B0D11;--s1:#111419;--s2:#161B24;--s3:#1E242F;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#E2E8F0;--text2:#64748B;--text3:#94A3B8;
+  --red:#E53E3E;--amber:#D97706;--green:#16A34A;--blue:#3B82F6;
+  --accent:#E8390E;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+body{display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.hdr{height:52px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;gap:16px}
+.hdr-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff}
+.hdr-name{font-family:'IBM Plex Mono';font-size:12px;font-weight:600;line-height:1.3}
+.hdr-name span{color:var(--blue)}
+.nav-tabs{display:flex;gap:2px}
+.nt{padding:7px 15px;border-radius:8px;border:none;background:transparent;font-family:'DM Sans';font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;white-space:nowrap}
+.nt:hover{background:rgba(255,255,255,.05);color:var(--text3)}
+.nt.active{background:rgba(59,130,246,.12);color:var(--blue);font-weight:700}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:#4ADE80}
+.ldot{width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.clock{font-family:'IBM Plex Mono';font-size:12px;color:var(--text2)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:188px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--border);padding:14px 10px;overflow-y:auto}
+.main{flex:1;overflow-y:auto}
+.panel{display:none;padding:20px;flex-direction:column;gap:18px}
+.panel.active{display:flex}
+
+.sb-sec{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:10px 8px 6px;margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;margin-bottom:2px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:.15s}
+.sb-item:hover{background:rgba(255,255,255,.04);color:var(--text3)}
+.sb-item.active{background:rgba(59,130,246,.1);color:var(--blue);font-weight:600}
+.sb-item .ico{width:16px;text-align:center;font-size:13px}
+.nb{margin-left:auto;min-width:18px;height:18px;border-radius:4px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.nb.a{background:var(--amber)}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;font-family:'DM Sans'}
+.btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:#2563EB}
+.btn.success{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.2);color:#4ADE80}
+.btn.danger{background:rgba(229,62,62,.08);border-color:rgba(229,62,62,.15);color:#FCA5A5}
+.btn.sm{padding:5px 10px;font-size:11px}
+.btn-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* ── PAGE TITLE ── */
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pg-title h2{font-size:18px;font-weight:800}
+.pg-title p{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* ── TABLE GRID ── */
+.base-url-bar{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.base-url-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);flex-shrink:0}
+.base-url-input{flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:9px 14px;color:var(--text);font-family:'IBM Plex Mono';font-size:13px;outline:none;min-width:260px}
+.base-url-input:focus{border-color:var(--blue)}
+
+.table-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ts-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px;position:relative;overflow:hidden}
+.ts-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.ts-blue::after{background:var(--blue)}.ts-green::after{background:var(--green)}.ts-amber::after{background:var(--amber)}.ts-red::after{background:var(--red)}
+.ts-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:8px}
+.ts-val{font-family:'IBM Plex Mono';font-size:28px;font-weight:600;line-height:1;margin-bottom:4px}
+.ts-delta{font-size:11px;color:var(--text2)}
+
+.tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+
+.table-card{
+  background:var(--s1);border:1.5px solid var(--border);
+  border-radius:18px;overflow:hidden;transition:.2s;cursor:pointer;
+  position:relative;
+}
+.table-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.table-card.occupied{border-color:rgba(217,119,6,.3)}
+.table-card.available{border-color:rgba(22,163,74,.2)}
+.table-card.reserved{border-color:rgba(59,130,246,.25)}
+
+.tc-top{padding:16px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between}
+.tc-num{font-family:'IBM Plex Mono';font-size:32px;font-weight:700;line-height:1;color:var(--text)}
+.tc-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.tc-status.occupied{background:rgba(217,119,6,.12);color:#FCD34D}
+.tc-status.available{background:rgba(22,163,74,.1);color:#4ADE80}
+.tc-status.reserved{background:rgba(59,130,246,.1);color:#93C5FD}
+.tc-sdot{width:5px;height:5px;border-radius:50%}
+.tc-sdot.occupied{background:#D97706}.tc-sdot.available{background:#16A34A}.tc-sdot.reserved{background:var(--blue)}
+
+.tc-info{padding:0 16px 12px}
+.tc-capacity{font-size:12px;color:var(--text2);margin-bottom:8px}
+
+.tc-url{
+  font-family:'IBM Plex Mono';font-size:10px;color:var(--text2);
+  background:var(--s3);border-radius:7px;padding:6px 10px;
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+  border:1px solid var(--border);
+}
+.tc-url span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-copy{background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:13px;flex-shrink:0;padding:2px;border-radius:4px;transition:.15s}
+.tc-copy:hover{color:var(--text);background:rgba(255,255,255,.08)}
+
+.tc-qr-wrap{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--s3);border-top:1px solid var(--border)}
+.tc-qr-inner{background:#fff;padding:6px;border-radius:8px}
+
+.tc-actions{padding:10px 14px 14px;display:flex;gap:6px;flex-wrap:wrap}
+.tc-btn{flex:1;padding:7px 8px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans';transition:.15s;text-align:center;white-space:nowrap}
+.tc-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.tc-btn.qr{color:#93C5FD;border-color:rgba(59,130,246,.2)}
+.tc-btn.qr:hover{background:rgba(59,130,246,.1)}
+.tc-btn.print{color:#86EFAC;border-color:rgba(22,163,74,.2)}
+.tc-btn.print:hover{background:rgba(22,163,74,.1)}
+
+.tc-occupied-info{padding:10px 14px;background:rgba(217,119,6,.06);border-top:1px solid rgba(217,119,6,.12);font-size:12px;color:#FCD34D}
+
+.add-table-card{
+  background:transparent;border:2px dashed var(--border);border-radius:18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:200px;cursor:pointer;transition:.2s;color:var(--text2);gap:10px;
+}
+.add-table-card:hover{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.04)}
+.add-icon{font-size:32px}
+.add-label{font-size:13px;font-weight:600}
+
+/* ── QR MODAL ── */
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--border2);border-radius:20px;width:100%;max-width:480px}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,.07);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:24px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.qr-big{background:#fff;padding:16px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.qr-url-display{font-family:'IBM Plex Mono';font-size:12px;color:var(--text3);text-align:center;background:var(--s3);border-radius:10px;padding:10px 14px;width:100%;word-break:break-all;border:1px solid var(--border)}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.modal-btn{padding:12px;border-radius:12px;border:none;font-family:'DM Sans';font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+.mb-dl{background:var(--blue);color:#fff}
+.mb-dl:hover{background:#2563EB}
+.mb-print{background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.2);color:#4ADE80}
+.mb-print:hover{background:rgba(22,163,74,.2)}
+
+/* ── PRINT LABEL ── */
+.print-label-preview{width:100%;background:var(--s3);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.pl-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:6px}
+
+.label-card{
+  background:#fff;border-radius:12px;padding:16px;
+  display:flex;align-items:center;gap:16px;
+  max-width:320px;margin:0 auto;
+}
+.label-left{flex:1}
+.label-brand{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:4px}
+.label-num{font-size:48px;font-weight:900;color:#111;line-height:1;font-family:'IBM Plex Mono'}
+.label-sub{font-size:11px;color:#555;margin-top:4px;line-height:1.4}
+.label-url{font-size:8px;color:#999;font-family:monospace;margin-top:6px;word-break:break-all}
+.label-right{flex-shrink:0}
+.label-qr-wrap{background:#fff;padding:4px;border-radius:6px;border:1.5px solid #eee}
+
+/* ── KITCHEN/WAITER VIEW ── */
+.kw-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.view-toggle{display:flex;gap:4px;background:var(--s3);border-radius:10px;padding:4px}
+.vt-btn{padding:7px 16px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans';transition:.15s}
+.vt-btn.active{background:var(--s1);color:var(--text);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+.table-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.tm-card{
+  border-radius:16px;padding:16px;border:2px solid;cursor:pointer;
+  transition:.2s;position:relative;
+}
+.tm-card:hover{transform:translateY(-2px)}
+.tm-card.free{background:rgba(22,163,74,.05);border-color:rgba(22,163,74,.2)}
+.tm-card.busy{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.3)}
+.tm-card.new-order{background:rgba(229,62,62,.08);border-color:rgba(229,62,62,.35);animation:pulseBorder 1.5s infinite}
+@keyframes pulseBorder{0%,100%{box-shadow:0 0 0 0 rgba(229,62,62,.3)}50%{box-shadow:0 0 0 8px rgba(229,62,62,0)}}
+.tm-card.bill-req{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.35)}
+
+.tm-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tm-num{font-family:'IBM Plex Mono';font-size:26px;font-weight:700}
+.tm-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+.tm-badge.free{background:rgba(22,163,74,.12);color:#4ADE80}
+.tm-badge.busy{background:rgba(217,119,6,.12);color:#FCD34D}
+.tm-badge.new{background:rgba(229,62,62,.15);color:#FCA5A5;animation:blink 1s infinite}
+.tm-badge.bill{background:rgba(139,92,246,.15);color:#C4B5FD}
+
+.tm-capacity{font-size:11px;color:var(--text2);margin-bottom:8px}
+.tm-order-preview{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:10px}
+.tm-total{font-family:'IBM Plex Mono';font-size:15px;font-weight:600;color:var(--text)}
+.tm-time{font-size:11px;color:var(--text2);margin-top:2px}
+
+.tm-actions{display:flex;gap:6px;margin-top:10px}
+.tm-act{flex:1;padding:7px;border-radius:8px;border:none;font-family:'DM Sans';font-size:11px;font-weight:600;cursor:pointer;transition:.15s;text-align:center}
+.tm-act.call{background:rgba(59,130,246,.1);color:#93C5FD;border:1px solid rgba(59,130,246,.2)}
+.tm-act.bill{background:rgba(139,92,246,.1);color:#C4B5FD;border:1px solid rgba(139,92,246,.2)}
+.tm-act.clear{background:rgba(229,62,62,.08);color:#FCA5A5;border:1px solid rgba(229,62,62,.15)}
+.tm-act:hover{filter:brightness(1.2)}
+
+.new-order-badge{
+  position:absolute;top:-6px;right:-6px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--red);color:#fff;font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  animation:pop .3s ease;
+}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+
+/* ── ORDERS STREAM ── */
+.orders-stream{display:flex;flex-direction:column;gap:10px}
+.order-row{
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  border-left:3px solid;transition:.15s;
+}
+.order-row:hover{background:var(--s2)}
+.order-row.new{border-left-color:var(--red)}
+.order-row.prep{border-left-color:var(--amber)}
+.order-row.ready{border-left-color:var(--green)}
+.or-table{font-family:'IBM Plex Mono';font-size:20px;font-weight:700;min-width:40px}
+.or-info{flex:1}
+.or-items{font-size:13px;color:var(--text);margin-bottom:3px}
+.or-meta{font-size:11px;color:var(--text2)}
+.or-price{font-family:'IBM Plex Mono';font-size:15px;font-weight:600;color:var(--text);margin-right:8px}
+.or-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px}
+.or-badge.new{background:rgba(229,62,62,.12);color:#FCA5A5}
+.or-badge.prep{background:rgba(217,119,6,.12);color:#FCD34D}
+.or-badge.ready{background:rgba(22,163,74,.1);color:#4ADE80}
+.or-btn{padding:7px 12px;border-radius:8px;border:none;font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.or-btn.next{background:rgba(59,130,246,.1);color:#93C5FD;border:1px solid rgba(59,130,246,.2)}
+.or-btn.next:hover{background:rgba(59,130,246,.2)}
+.or-btn.done{background:rgba(22,163,74,.1);color:#4ADE80;border:1px solid rgba(22,163,74,.2)}
+.or-btn.done:hover{background:rgba(22,163,74,.2)}
+.or-btn.prt{background:rgba(255,255,255,.05);color:var(--text2);border:1px solid var(--border)}
+.or-btn.prt:hover{background:rgba(255,255,255,.1)}
+
+/* ── FORM ── */
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2)}
+.form-input{background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:9px 14px;color:var(--text);font-family:'DM Sans';font-size:14px;outline:none;width:100%;transition:.2s}
+.form-input:focus{border-color:var(--blue)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ADD TABLE MODAL */
+.add-modal{background:var(--s2);border:1px solid var(--border2);border-radius:20px;width:100%;max-width:400px}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:13px;opacity:0;transform:translateY(6px);transition:.25s;pointer-events:none;max-width:360px}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body{background:#fff!important;color:#000!important}
+  .hdr,.sidebar,.modal-bg,.toast{display:none!important}
+  .print-area{display:block!important}
+  .no-print{display:none!important}
+}
+.print-area{display:none}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">A</div>
+    <div class="hdr-name">ATOM KUMPİR<br><span>Masa & QR Yönetimi</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nt active" onclick="switchPanel('tables',this)">📋 Masalar & QR</button>
+    <button class="nt" onclick="switchPanel('kitchen',this)">👨‍🍳 Mutfak Görünümü</button>
+    <button class="nt" onclick="switchPanel('waiter',this)">🧑‍🍽️ Garson Görünümü</button>
+  </div>
+  <div class="hdr-right">
+    <div class="live-pill"><div class="ldot"></div> CANLI</div>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-sec">Görünümler</div>
+    <div class="sb-item active"><span class="ico">📋</span>Masalar & QR</div>
+    <div class="sb-item"><span class="ico">👨‍🍳</span>Mutfak</div>
+    <div class="sb-item"><span class="ico">🧑‍🍽️</span>Garson</div>
+    <div class="sb-sec">Siparişler</div>
+    <div class="sb-item"><span class="ico">🔴</span>Yeni<span class="nb" id="sbNewCount">3</span></div>
+    <div class="sb-item"><span class="ico">🟡</span>Hazırlanıyor<span class="nb a">2</span></div>
+    <div class="sb-item"><span class="ico">🟢</span>Hazır</div>
+    <div class="sb-item"><span class="ico">🧾</span>Hesap İstedi<span class="nb a">1</span></div>
+    <div class="sb-sec">Ayarlar</div>
+    <div class="sb-item"><span class="ico">🔗</span>Base URL</div>
+    <div class="sb-item"><span class="ico">🖨</span>Yazıcı</div>
+    <div class="sb-item"><span class="ico">📡</span>NFC</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ══════════════ TABLES & QR ══════════════ -->
+    <div class="panel active" id="panel-tables">
+      <div class="pg-head">
+        <div class="pg-title">
+          <h2>Masa & QR/NFC Yönetimi</h2>
+          <p>Her masaya özel URL üretin · QR kodu indirin · NFC stikerına yazın</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="printAllLabels()">🖨 Tüm Etiketleri Yazdır</button>
+          <button class="btn primary" onclick="openAddTableModal()">+ Masa Ekle</button>
+        </div>
+      </div>
+
+      <!-- Base URL Config -->
+      <div class="base-url-bar">
+        <span class="base-url-label">🔗 Base URL</span>
+        <input class="base-url-input" id="baseUrlInput" value="https://siparis.atomkumpir.com/masa/" placeholder="https://siteniz.com/masa/">
+        <button class="btn primary" onclick="updateBaseUrl()">Güncelle & Yeniden Üret</button>
+        <span style="font-size:11px;color:var(--text2)">Tüm QR'lar bu URL kullanır</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="table-stats">
+        <div class="ts-card ts-blue"><div class="ts-lbl">Toplam Masa</div><div class="ts-val" id="statTotal">0</div><div class="ts-delta">Aktif masalar</div></div>
+        <div class="ts-card ts-amber"><div class="ts-lbl">Dolu</div><div class="ts-val" id="statOccupied">0</div><div class="ts-delta">Aktif sipariş var</div></div>
+        <div class="ts-card ts-green"><div class="ts-lbl">Boş</div><div class="ts-val" id="statFree">0</div><div class="ts-delta">Hazır</div></div>
+        <div class="ts-card ts-red"><div class="ts-lbl">Yeni Sipariş</div><div class="ts-val" id="statNew">3</div><div class="ts-delta">Dikkat gerekli</div></div>
+      </div>
+
+      <!-- Tables Grid -->
+      <div class="tables-grid" id="tablesGrid"></div>
+    </div>
+
+    <!-- ══════════════ KITCHEN ══════════════ -->
+    <div class="panel" id="panel-kitchen">
+      <div class="kw-header">
+        <div class="pg-title"><h2>Mutfak Görünümü</h2><p>Masa bazlı sipariş akışı · Gerçek zamanlı</p></div>
+        <div class="btn-row">
+          <button class="btn" onclick="showToast('🖨 Tüm açık siparişler yazdırılıyor...')">🖨 Toplu Yazdır</button>
+          <button class="btn primary">🔄 Yenile</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <!-- NEW -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#EF4444">● Yeni Siparişler</span>
+            <span style="font-family:'IBM Plex Mono';font-size:11px;color:var(--text2);background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px" id="kitchenNewCount">3</span>
+          </div>
+          <div id="kitchenNewList"></div>
+        </div>
+        <!-- PREP -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#D97706">● Hazırlanıyor</span>
+            <span style="font-family:'IBM Plex Mono';font-size:11px;color:var(--text2);background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px">2</span>
+          </div>
+          <div id="kitchenPrepList"></div>
+        </div>
+        <!-- READY -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#16A34A">● Hazır / Servis</span>
+            <span style="font-family:'IBM Plex Mono';font-size:11px;color:var(--text2);background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px">2</span>
+          </div>
+          <div id="kitchenReadyList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ WAITER ══════════════ -->
+    <div class="panel" id="panel-waiter">
+      <div class="kw-header">
+        <div class="pg-title"><h2>Garson Görünümü</h2><p>Masa durumları · Servis ve hesap takibi</p></div>
+        <div class="view-toggle">
+          <button class="vt-btn active" onclick="setWaiterView('map',this)">🗺 Masa Haritası</button>
+          <button class="vt-btn" onclick="setWaiterView('list',this)">📋 Liste</button>
+        </div>
+      </div>
+      <div id="waiterContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── QR MODAL ── -->
+<div class="modal-bg" id="qrModal" onclick="if(event.target===this)closeQRModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="qrModalTitle">QR Kod — Masa</h3>
+      <button class="modal-close" onclick="closeQRModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qr-big" id="qrBig"></div>
+      <div class="qr-url-display" id="qrUrlDisplay"></div>
+      <div style="font-size:11px;color:var(--text2);text-align:center">
+        Bu URL'i NFC stikerına yazın veya QR kodu yazdırın.<br>Müşteri okuttuğunda doğrudan masaya ait sipariş ekranı açılır.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn mb-dl" onclick="downloadQR()">⬇ QR İndir (PNG)</button>
+        <button class="modal-btn mb-print" onclick="printLabel()">🖨 Etiket Yazdır</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD TABLE MODAL ── -->
+<div class="modal-bg" id="addTableModal" onclick="if(event.target===this)closeAddTableModal()">
+  <div class="add-modal">
+    <div class="modal-head">
+      <h3>Yeni Masa Ekle</h3>
+      <button class="modal-close" onclick="closeAddTableModal()">✕</button>
+    </div>
+    <div class="modal-body" style="align-items:stretch">
+      <div class="form-row">
+        <div class="form-lbl">Masa Numarası</div>
+        <input class="form-input" id="newTableNum" type="number" min="1" placeholder="Örn: 12">
+      </div>
+      <div class="form-row-2">
+        <div class="form-row">
+          <div class="form-lbl">Kapasite (Kişi)</div>
+          <input class="form-input" id="newTableCap" type="number" min="1" value="4">
+        </div>
+        <div class="form-row">
+          <div class="form-lbl">Bölge</div>
+          <select class="form-input" id="newTableZone">
+            <option>İç Mekan</option>
+            <option>Teras</option>
+            <option>VIP</option>
+            <option>Bahçe</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0 20px 20px;display:flex;gap:8px">
+      <button style="flex:1;padding:12px;border:1px solid var(--border2);border-radius:12px;background:transparent;color:var(--text3);font-family:'DM Sans';cursor:pointer" onclick="closeAddTableModal()">İptal</button>
+      <button style="flex:1;padding:12px;border:none;border-radius:12px;background:var(--blue);color:#fff;font-family:'DM Sans';font-size:14px;font-weight:700;cursor:pointer" onclick="addTable()">Ekle & QR Üret</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA (hidden, shown on print) -->
+<div class="print-area" id="printArea"></div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ── DATA ──
+let BASE_URL = 'https://siparis.atomkumpir.com/masa/';
+
+const STATUSES = ['free','free','occupied','new-order','occupied','free','bill-req','occupied','free','free','occupied','new-order','free','new-order','free'];
+
+let TABLES = [
+  {id:1, num:1, cap:4, zone:'İç Mekan', status:'new-order', orders:[{name:'Kumpir Spesyal ×2, Limonata ×2',total:348,time:'2 dk'}]},
+  {id:2, num:2, cap:2, zone:'İç Mekan', status:'occupied', orders:[{name:'Smash Burger ×1, Milkshake ×1',total:284,time:'14 dk'}]},
+  {id:3, num:3, cap:6, zone:'Teras',    status:'free', orders:[]},
+  {id:4, num:4, cap:4, zone:'İç Mekan', status:'occupied', orders:[{name:'Double Smash ×2, Waffle Tatlı ×1',total:617,time:'8 dk'}]},
+  {id:5, num:5, cap:2, zone:'Teras',    status:'free', orders:[]},
+  {id:6, num:6, cap:4, zone:'İç Mekan', status:'new-order', orders:[{name:'Kumpir Klasik ×3, Ayran ×3',total:642,time:'1 dk'}]},
+  {id:7, num:7, cap:8, zone:'VIP',      status:'bill-req', orders:[{name:'Çeşitli · 6 kalem',total:1240,time:'42 dk'}]},
+  {id:8, num:8, cap:4, zone:'İç Mekan', status:'free', orders:[]},
+  {id:9, num:9, cap:2, zone:'Bahçe',    status:'new-order', orders:[{name:'Crispy Chicken ×2, Waffle Karışık ×1',total:489,time:'0 dk'}]},
+  {id:10, num:10, cap:4, zone:'Bahçe',  status:'free', orders:[]},
+  {id:11, num:11, cap:6, zone:'Teras',  status:'occupied', orders:[{name:'Kumpir Spesyal ×4, Milkshake ×4',total:1096,time:'22 dk'}]},
+  {id:12, num:12, cap:2, zone:'İç Mekan',status:'free', orders:[]},
+];
+
+let qrInstances = {}; // cache
+let currentQRTable = null;
+let waiterViewMode = 'map';
+
+// ── QR CODE GENERATION ──
+function getTableURL(tableNum) {
+  return BASE_URL + tableNum;
+}
+
+function generateQRCode(containerId, url, size=120) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  new QRCode(el, {
+    text: url,
+    width: size,
+    height: size,
+    colorDark: '#111111',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+// ── RENDER TABLES GRID ──
+function renderTablesGrid() {
+  const grid = document.getElementById('tablesGrid');
+  const occupied = TABLES.filter(t=>t.status!=='free').length;
+  const free = TABLES.filter(t=>t.status==='free').length;
+  document.getElementById('statTotal').textContent = TABLES.length;
+  document.getElementById('statOccupied').textContent = occupied;
+  document.getElementById('statFree').textContent = free;
+
+  grid.innerHTML = TABLES.map(t => {
+    const url = getTableURL(t.num);
+    const statusLabel = {
+      'free':'Boş','occupied':'Dolu','new-order':'Yeni Sipariş!','bill-req':'Hesap İstedi','reserved':'Rezerve'
+    }[t.status] || t.status;
+    const hasBill = t.status === 'bill-req';
+    const hasNew = t.status === 'new-order';
+
+    return `<div class="table-card ${t.status==='occupied'||t.status==='bill-req'||t.status==='new-order'?'occupied':'available'}" id="tc-${t.id}">
+      ${hasNew ? `<div class="new-order-badge">!</div>` : ''}
+      <div class="tc-top">
+        <div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">${t.zone}</div>
+          <div class="tc-num">${t.num}</div>
+        </div>
+        <span class="tc-status ${t.status==='free'?'available':t.status==='new-order'?'occupied':t.status==='bill-req'?'reserved':t.status}">
+          <div class="tc-sdot ${t.status==='free'?'available':t.status==='reserved'?'reserved':'occupied'}"></div>
+          ${statusLabel}
+        </span>
+      </div>
+      <div class="tc-info">
+        <div class="tc-capacity">👥 ${t.cap} kişilik</div>
+        <div class="tc-url">
+          <span id="url-${t.id}">${url}</span>
+          <button class="tc-copy" onclick="copyURL(${t.id})" title="Kopyala">📋</button>
+        </div>
+      </div>
+      <div class="tc-qr-wrap">
+        <div class="tc-qr-inner">
+          <div id="qr-mini-${t.id}" style="width:80px;height:80px"></div>
+        </div>
+      </div>
+      ${t.orders.length > 0 ? `<div class="tc-occupied-info">📋 ${t.orders[0].name}<br><span style="font-family:'IBM Plex Mono';font-size:12px">₺${t.orders[0].total}</span> · ${t.orders[0].time} önce</div>` : ''}
+      <div class="tc-actions">
+        <button class="tc-btn qr" onclick="openQRModal(${t.id})">🔍 QR Büyüt</button>
+        <button class="tc-btn print" onclick="printSingleLabel(${t.id})">🖨 Etiket</button>
+        <button class="tc-btn" onclick="changeTableStatus(${t.id})" title="Durumu değiştir">⚙️</button>
+      </div>
+    </div>`;
+  }).join('') +
+  `<div class="add-table-card" onclick="openAddTableModal()">
+    <div class="add-icon">+</div>
+    <div class="add-label">Masa Ekle</div>
+    <div style="font-size:11px;color:var(--text2)">QR otomatik üretilir</div>
+  </div>`;
+
+  // Generate mini QRs after DOM ready
+  setTimeout(() => {
+    TABLES.forEach(t => {
+      const url = getTableURL(t.num);
+      generateQRCode(`qr-mini-${t.id}`, url, 80);
+    });
+  }, 100);
+}
+
+// ── QR MODAL ──
+function openQRModal(tableId) {
+  currentQRTable = TABLES.find(t => t.id === tableId);
+  if (!currentQRTable) return;
+  const url = getTableURL(currentQRTable.num);
+  document.getElementById('qrModalTitle').textContent = `QR Kod — Masa ${currentQRTable.num} (${currentQRTable.zone})`;
+  document.getElementById('qrUrlDisplay').textContent = url;
+  document.getElementById('qrBig').innerHTML = '';
+  setTimeout(() => {
+    new QRCode(document.getElementById('qrBig'), {
+      text: url, width: 240, height: 240,
+      colorDark: '#111', colorLight: '#fff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }, 50);
+  document.getElementById('qrModal').classList.add('open');
+}
+
+function closeQRModal() {
+  document.getElementById('qrModal').classList.remove('open');
+}
+
+function downloadQR() {
+  if (!currentQRTable) return;
+  const canvas = document.querySelector('#qrBig canvas');
+  if (!canvas) { showToast('⚠️ QR yüklenemedi, tekrar deneyin'); return; }
+  const link = document.createElement('a');
+  link.download = `ATOM-Masa${currentQRTable.num}-QR.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast(`✅ Masa ${currentQRTable.num} QR kodu indirildi`);
+}
+
+function copyURL(tableId) {
+  const t = TABLES.find(t => t.id === tableId);
+  const url = getTableURL(t.num);
+  navigator.clipboard.writeText(url).then(() => {
+    showToast(`📋 Kopyalandı: ${url}`);
+  }).catch(() => {
+    showToast(`URL: ${url}`);
+  });
+}
+
+// ── PRINT LABEL ──
+function printLabel() {
+  if (!currentQRTable) return;
+  printSingleLabel(currentQRTable.id);
+}
+
+function printSingleLabel(tableId) {
+  const t = TABLES.find(t => t.id === tableId);
+  if (!t) return;
+  const url = getTableURL(t.num);
+
+  // Generate QR as data URL then print
+  const tempDiv = document.createElement('div');
+  tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;background:#fff';
+  document.body.appendChild(tempDiv);
+
+  const qr = new QRCode(tempDiv, {text: url, width: 160, height: 160, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.H});
+
+  setTimeout(() => {
+    const canvas = tempDiv.querySelector('canvas');
+    const qrDataUrl = canvas ? canvas.toDataURL('image/png') : '';
+    document.body.removeChild(tempDiv);
+
+    const printWin = window.open('', '_blank', 'width=400,height=500');
+    printWin.document.write(`
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;padding:20px;background:#fff;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .label{width:300px;border:2px solid #111;border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;background:#fff}
+  .label-left{flex:1}
+  .brand{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px}
+  .masa-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px}
+  .num{font-size:72px;font-weight:900;color:#111;line-height:1;font-family:'IBM Plex Mono'}
+  .zone{font-size:12px;color:#666;margin-top:4px}
+  .cap{font-size:11px;color:#999;margin-top:2px}
+  .nfc-note{font-size:9px;color:#aaa;margin-top:8px;line-height:1.4}
+  .nfc-url{font-size:8px;font-family:'IBM Plex Mono';color:#bbb;margin-top:4px;word-break:break-all}
+  .qr-side{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .qr-img{width:120px;height:120px;border:1px solid #eee;border-radius:8px;padding:4px}
+  .scan-label{font-size:9px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .divider{width:300px;border-top:1px dashed #ddd;margin:4px 0}
+  .instructions{width:300px;font-size:10px;color:#888;line-height:1.6;text-align:center}
+  @media print{body{padding:10px}}
+</style>
+</head><body>
+<div class="label">
+  <div class="label-left">
+    <div class="brand">ATOM KUMPİR & BURGER & WAFFLE</div>
+    <div class="masa-label">MASA</div>
+    <div class="num">${t.num}</div>
+    <div class="zone">${t.zone}</div>
+    <div class="cap">👥 ${t.cap} kişilik</div>
+    <div class="nfc-note">📱 Telefonunuzu masaya koyun<br>veya QR kodu okutun</div>
+    <div class="nfc-url">${url}</div>
+  </div>
+  <div class="qr-side">
+    <img class="qr-img" src="${qrDataUrl}" alt="QR">
+    <div class="scan-label">Sipariş ver</div>
+  </div>
+</div>
+<div class="divider"></div>
+<div class="instructions">
+  Bu QR kodu veya NFC stikeri masanıza sabitleyebilirsiniz.<br>
+  Müşteriler okuttuğunda doğrudan sipariş ekranı açılır.
+</div>
+<script>window.onload=function(){window.print();window.close()}<\/script>
+</body></html>`);
+    printWin.document.close();
+    showToast(`🖨 Masa ${t.num} etiketi yazdırılıyor...`);
+  }, 200);
+}
+
+function printAllLabels() {
+  showToast(`🖨 ${TABLES.length} masa etiketi hazırlanıyor...`);
+  setTimeout(() => {
+    TABLES.forEach((t, i) => {
+      setTimeout(() => printSingleLabel(t.id), i * 500);
+    });
+  }, 300);
+}
+
+// ── BASE URL UPDATE ──
+function updateBaseUrl() {
+  const val = document.getElementById('baseUrlInput').value.trim();
+  if (!val) { showToast('⚠️ Geçerli bir URL girin'); return; }
+  BASE_URL = val.endsWith('/') ? val : val + '/';
+  renderTablesGrid();
+  showToast(`✅ Base URL güncellendi: ${BASE_URL}`);
+}
+
+// ── ADD TABLE ──
+function openAddTableModal() { document.getElementById('addTableModal').classList.add('open'); }
+function closeAddTableModal() { document.getElementById('addTableModal').classList.remove('open'); }
+function addTable() {
+  const num = parseInt(document.getElementById('newTableNum').value);
+  const cap = parseInt(document.getElementById('newTableCap').value) || 4;
+  const zone = document.getElementById('newTableZone').value;
+  if (!num || num < 1) { showToast('⚠️ Masa numarası girin'); return; }
+  if (TABLES.find(t => t.num === num)) { showToast('⚠️ Bu numara zaten var'); return; }
+  TABLES.push({ id: Date.now(), num, cap, zone, status: 'free', orders: [] });
+  TABLES.sort((a, b) => a.num - b.num);
+  closeAddTableModal();
+  renderTablesGrid();
+  renderKitchen();
+  renderWaiter();
+  showToast(`✅ Masa ${num} eklendi · QR kod üretildi!`);
+}
+
+function changeTableStatus(tableId) {
+  const t = TABLES.find(t => t.id === tableId);
+  const statuses = ['free', 'occupied', 'new-order', 'bill-req'];
+  const idx = statuses.indexOf(t.status);
+  t.status = statuses[(idx + 1) % statuses.length];
+  if (t.status === 'free') t.orders = [];
+  renderTablesGrid(); renderKitchen(); renderWaiter();
+  showToast(`Masa ${t.num}: ${t.status}`);
+}
+
+// ── KITCHEN RENDER ──
+const KITCHEN_ORDERS = [
+  {tableNum:1, zone:'İç Mekan', items:'Kumpir Spesyal ×2, Limonata ×2', total:348, time:'2 dk', status:'new'},
+  {tableNum:6, zone:'İç Mekan', items:'Kumpir Klasik ×3, Ayran ×3', total:642, time:'1 dk', status:'new'},
+  {tableNum:9, zone:'Bahçe',    items:'Crispy Chicken ×2, Waffle Karışık ×1', total:489, time:'0 dk', status:'new'},
+  {tableNum:4, zone:'İç Mekan', items:'Double Smash ×2, Waffle Tatlı ×1', total:617, time:'8 dk', status:'prep'},
+  {tableNum:11, zone:'Teras',   items:'Kumpir Spesyal ×4, Milkshake ×4', total:1096, time:'14 dk', status:'prep'},
+  {tableNum:2, zone:'İç Mekan', items:'Smash Burger ×1, Milkshake ×1', total:284, time:'18 dk', status:'ready'},
+  {tableNum:7, zone:'VIP',      items:'Çeşitli · 6 kalem', total:1240, time:'28 dk', status:'ready'},
+];
+
+function kitchenTicket(o) {
+  const btnMap = {
+    new: `<button class="or-btn next" onclick="showToast('✓ Masa ${o.tableNum} → Hazırlanıyor')">Başla →</button>`,
+    prep: `<button class="or-btn done" onclick="showToast('✅ Masa ${o.tableNum} Hazır!')">Hazır ✓</button>`,
+    ready: ''
+  };
+  return `<div class="order-row ${o.status}" style="margin-bottom:10px;flex-direction:column;align-items:flex-start;gap:8px">
+    <div style="display:flex;align-items:center;width:100%;gap:12px">
+      <div class="or-table">M${o.tableNum}</div>
+      <div class="or-info">
+        <div class="or-items">${o.items}</div>
+        <div class="or-meta">${o.zone} · ${o.time} önce</div>
+      </div>
+      <span class="or-price">₺${o.total}</span>
+      <span class="or-badge ${o.status}">${{new:'YENİ',prep:'HAZIRLAN.',ready:'HAZIR'}[o.status]}</span>
+    </div>
+    <div style="display:flex;gap:6px;width:100%">
+      <button class="or-btn prt" onclick="showToast('🖨 Masa ${o.tableNum} adisyonu yazdırılıyor...')">🖨 Yazdır</button>
+      ${btnMap[o.status]}
+    </div>
+  </div>`;
+}
+
+function renderKitchen() {
+  document.getElementById('kitchenNewList').innerHTML = KITCHEN_ORDERS.filter(o=>o.status==='new').map(kitchenTicket).join('');
+  document.getElementById('kitchenPrepList').innerHTML = KITCHEN_ORDERS.filter(o=>o.status==='prep').map(kitchenTicket).join('');
+  document.getElementById('kitchenReadyList').innerHTML = KITCHEN_ORDERS.filter(o=>o.status==='ready').map(kitchenTicket).join('');
+  document.getElementById('kitchenNewCount').textContent = KITCHEN_ORDERS.filter(o=>o.status==='new').length;
+}
+
+// ── WAITER RENDER ──
+function setWaiterView(mode, btn) {
+  waiterViewMode = mode;
+  document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderWaiter();
+}
+
+function renderWaiter() {
+  const container = document.getElementById('waiterContent');
+  if (waiterViewMode === 'map') {
+    container.innerHTML = `<div class="table-map">${TABLES.map(t => {
+      const statusMap = {free:'Boş',occupied:'Dolu',new_order:'Yeni!','new-order':'Yeni!',bill_req:'Hesap','bill-req':'Hesap'};
+      const badgeMap = {free:'free',occupied:'busy','new-order':'new','bill-req':'bill'};
+      const label = statusMap[t.status] || t.status;
+      const badge = badgeMap[t.status] || 'busy';
+      const hasNew = t.status === 'new-order';
+      return `<div class="tm-card ${t.status==='free'?'free':t.status==='new-order'?'new-order':t.status==='bill-req'?'bill-req':'busy'}">
+        ${hasNew ? `<div class="new-order-badge">!</div>` : ''}
+        <div class="tm-top">
+          <div class="tm-num">M${t.num}</div>
+          <span class="tm-badge ${badge}">${label}</span>
+        </div>
+        <div class="tm-capacity">👥 ${t.cap} kişi · ${t.zone}</div>
+        ${t.orders.length ? `<div class="tm-order-preview">${t.orders[0].name}</div>
+        <div class="tm-total">₺${t.orders[0].total}</div>
+        <div class="tm-time">⏱ ${t.orders[0].time} önce</div>` : '<div style="font-size:12px;color:var(--text2)">Boş masa</div>'}
+        <div class="tm-actions">
+          <button class="tm-act call" onclick="showToast('📣 Masa ${t.num} çağırıldı')">Çağır</button>
+          ${t.status !== 'free' ? `<button class="tm-act bill" onclick="showToast('🧾 Masa ${t.num} hesap istedi')">Hesap</button>
+          <button class="tm-act clear" onclick="clearTable(${t.id})">Temizle</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  } else {
+    // List view
+    const occupied = TABLES.filter(t => t.status !== 'free');
+    container.innerHTML = `<div class="orders-stream">${occupied.map(t => `
+      <div class="order-row ${t.status==='new-order'?'new':t.status==='bill-req'?'ready':'prep'}">
+        <div class="or-table">M${t.num}</div>
+        <div class="or-info">
+          <div class="or-items">${t.orders[0]?.name || '-'}</div>
+          <div class="or-meta">${t.zone} · ${t.cap} kişilik · ${t.orders[0]?.time || '-'} önce</div>
+        </div>
+        <span class="or-price">₺${t.orders[0]?.total || 0}</span>
+        <span class="or-badge ${t.status==='new-order'?'new':t.status==='bill-req'?'ready':'prep'}">${{occupied:'DOLU','new-order':'YENİ','bill-req':'HESAP'}[t.status]}</span>
+        <div style="display:flex;gap:6px">
+          <button class="or-btn prt" onclick="showToast('🖨 Masa ${t.num} adisyonu yazdırılıyor...')">🖨</button>
+          <button class="or-btn next" onclick="showToast('✓ Masa ${t.num} işleme alındı')">İşlem</button>
+          <button class="or-btn done" onclick="clearTable(${t.id})">Kapat</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+}
+
+function clearTable(tableId) {
+  const t = TABLES.find(t => t.id === tableId);
+  t.status = 'free'; t.orders = [];
+  renderTablesGrid(); renderKitchen(); renderWaiter();
+  showToast(`✅ Masa ${t.num} kapatıldı · Temizlendi`);
+}
+
+// ── PANEL NAV ──
+function switchPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nt').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'kitchen') renderKitchen();
+  if (id === 'waiter') renderWaiter();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toastEl');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── CLOCK ──
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+// ── INIT ──
+renderTablesGrid();
+renderKitchen();
+renderWaiter();
+
+// Simulate new order notification every 20s
+setInterval(() => {
+  const freeTables = TABLES.filter(t => t.status === 'free');
+  if (freeTables.length > 0) {
+    const t = freeTables[Math.floor(Math.random() * freeTables.length)];
+    t.status = 'new-order';
+    t.orders = [{name:'Yeni sipariş geldi', total:Math.floor(Math.random()*300+100), time:'0 dk'}];
+    renderTablesGrid(); renderKitchen(); renderWaiter();
+    showToast(`🔔 YENİ SİPARİŞ — Masa ${t.num}!`);
+    document.getElementById('statNew').textContent = TABLES.filter(t=>t.status==='new-order').length;
+    document.getElementById('sbNewCount').textContent = TABLES.filter(t=>t.status==='new-order').length;
+  }
+}, 20000);
+</script>
+</body>
+</html>
